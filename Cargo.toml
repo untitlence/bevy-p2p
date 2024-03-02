@@ -9,6 +9,10 @@ license = "MIT"
 [dependencies]
 bevy = { version = "0.13", features = ["dynamic_linking"] }
 
+[lints.clippy]
+approx_constant = "allow"
+type_complexity = "allow"
+
 [profile.dev]
 opt-level = 1
 
