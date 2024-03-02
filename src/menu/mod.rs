@@ -5,34 +5,43 @@ use std::any::Any;
 
 mod prelude {
 	pub use super::components::*;
+	pub use super::resources::*;
 	pub use super::systems::*;
-	pub use super::ui::*;
 }
 
 mod components;
+mod resources;
 mod systems;
-mod ui;
 
 #[derive(Debug)]
-pub struct MenuPlugin<T> {
-	on_state: T,
+pub struct MenuPlugin<T, A> {
+	menu_state: T,
+	game_state: A,
 }
 
-impl<T> MenuPlugin<T> {
-	pub fn new(on_state: T) -> Self {
-		Self { on_state }
+impl<T, A> MenuPlugin<T, A> {
+	pub fn new(menu_state: T, game_state: A) -> Self {
+		Self {
+			menu_state,
+			game_state,
+		}
 	}
 }
 
-impl<T> Plugin for MenuPlugin<T>
+impl<T, A> Plugin for MenuPlugin<T, A>
 where
 	T: Any + Send + Sync + Copy + States,
+	A: Any + Send + Sync + Copy + States,
 {
 	fn build(&self, app: &mut App) {
 		app
-			.insert_resource(ClearColor(CLEAR_COLOR))
-			.add_systems(OnEnter(self.on_state), setup)
-			.add_systems(OnExit(self.on_state), despawn::<Menu>)
-			.add_systems(Update, button_flow);
+			.insert_resource(ClearColor(ui::CLEAR_COLOR))
+			.insert_resource(ActiveGameState(self.game_state))
+			.add_systems(OnEnter(self.menu_state), setup)
+			.add_systems(OnExit(self.menu_state), despawn::<Menu>)
+			.add_systems(
+				Update,
+				(ui::button_flow, menu_action::<A>).run_if(in_state(self.menu_state)),
+			);
 	}
 }

@@ -1,3 +1,4 @@
+use crate::shared::ui;
 use bevy::prelude::*;
 
 pub const CLEAR_COLOR: Color = Color::rgb(0.067, 0.071, 0.075);
@@ -14,6 +15,19 @@ pub fn screen() -> NodeBundle {
 			justify_content: JustifyContent::Center,
 			row_gap: Val::Px(8.),
 			flex_direction: FlexDirection::Column,
+			..default()
+		},
+		..default()
+	}
+}
+
+pub fn row() -> NodeBundle {
+	NodeBundle {
+		style: Style {
+			align_items: AlignItems::Center,
+			column_gap: Val::Px(6.),
+			flex_direction: FlexDirection::Row,
+			padding: UiRect::all(Val::Px(6.)),
 			..default()
 		},
 		..default()
@@ -42,6 +56,21 @@ pub fn text(text: &str, font_size: f32) -> TextBundle {
 		TextStyle {
 			font_size,
 			..default()
-		}
+		},
 	)
+}
+
+pub fn button_flow(
+	mut interaction_query: Query<
+		(&Interaction, &mut BackgroundColor),
+		(Changed<Interaction>, With<Button>),
+	>,
+) {
+	for (interaction, mut color) in &mut interaction_query {
+		use Interaction::*;
+		*color = match *interaction {
+			Hovered | Pressed => ui::HOVERED_COLOR.into(),
+			None => ui::PAPER_COLOR.into(),
+		}
+	}
 }
